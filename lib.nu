@@ -2,22 +2,36 @@ export def note [] {
     help note
 }
 
+# Create or edit existing note for a date.
 export def "note dated" [date_target: string = "today" ] {
     let date = $date_target | date from-human | format date "%Y-%m-%d"
-    open_note $"(get_local_path)/dated/($date).md"
+
+    let template_path = $"(get_local_path)/templates/dated.md"
+    let initial_content = if ($template_path | path exists) { open $template_path } else ""
+
+    open_note $"(get_local_path)/dated/($date).md" $initial_content
 }
 
+# Create a new note with a title.
 export def "note named" [title: string] {
     let date = date now | format date "%Y-%m-%d-%H-%M-%S"
-    open_note $"(get_local_path)/named/($date).md" $title
+    let note_path = $"(get_local_path)/named/($date).md" 
+
+    let template_path = $"(get_local_path)/templates/named.md"
+    mut initial_content = if ($template_path | path exists) { open $template_path } else ""
+    let initial_content = $"($initial_content)($in)"
+
+    open_note $note_path $initial_content ($title | str capitalize)
 }
 
+# Search through all notes content using ripgrep.
 export def "note grep" [query: string] { 
-    ^rg -i $query get_local_path
+    ^rg -i $query (get_local_path)
 }
 
-export def "note list" [query: string = ""] {
-    ^rg $"^# .*($query).*" -m 1 -i $"(get_local_path)/named" --json 
+# List named notes with titles matching the query.
+export def "note list" [title_query: string = ""] {
+    ^rg $"^# .*($title_query).*" -m 1 -i $"(get_local_path)/named" --json 
     | lines 
     | each { from json } 
     | where type == "match" 
@@ -29,9 +43,11 @@ export def "note list" [query: string = ""] {
     | sort
 }
 
+# Sync note repository.
 export def "note sync" [] {
-    if not (get_local_path | path exists) { mkdir get_local_path }
-    cd get_local_path
+    let local_path = get_local_path
+    if not ($local_path | path exists) { mkdir ($local_path) }
+    cd $local_path
 
     if not (".git" | path exists) {
         git init -b main
@@ -59,9 +75,10 @@ export def "note sync" [] {
     git push origin main
 }
 
-def open_note [file: string, title: string = ""] {
-    let path = (get_local_path | path join $file)
-    let content = if ($title != "") { $"# ($title)\n\n" } else "";
+def open_note [relative_path: string, initial_content: string = "", title: string = ""] {
+    let path = (get_local_path | path join $relative_path)
+    let title = if ($title != "") { $"# ($title)\n\n" } else "";
+    let content = $"($title)($initial_content)"
     mkdir ($path | path dirname)
     if not ($path | path exists) { $content | save $path -f }
     ^$env.EDITOR $path
