@@ -10,5 +10,5 @@ pkg install nushell git git-crypt ripgrep
 exec nu -c '
 let lib = http get https://raw.githubusercontent.com/silvarc141/notes-nu/main/lib.nu
 let dir = $nu.user-autoload-dirs | first
-$lib o> $dir | path join 'notes.nu'
+$lib o> $dir | path join "notes.nu"
 '
