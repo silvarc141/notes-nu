@@ -50,16 +50,16 @@ export def "note sync" [] {
     cd $local_path
 
     if not (".git" | path exists) {
-        git init -b main
-        git remote add origin (get_remote_url)
+        ^git init -b main
+        ^git remote add origin (get_remote_url)
         
-        if (git fetch | complete).exit_code != 0 {
+        if (^git fetch | complete).exit_code != 0 {
             rm -rf .git
             error make {msg: "Git fetch failed. Removing changes and exiting."}
         }
 
-        git-crypt unlock (get_crypt_key_path)
-        git checkout -b main origin/main --force
+        ^git-crypt unlock (get_crypt_key_path)
+        ^git checkout -b main origin/main --force
     }
 
     let lock_file = ".git/index.lock"
@@ -67,12 +67,12 @@ export def "note sync" [] {
         rm $lock_file 
     }
 
-    git branch --set-upstream-to=origin/main main
+    ^git branch --set-upstream-to=origin/main main
 
-    git add -A
-    git commit -m $"($env.USER)@(sys host | get hostname)"
-    git pull --rebase origin main --autostash -X ours
-    git push origin main
+    ^git add -A
+    ^git commit -m $"($env.USER)@(sys host | get hostname)"
+    ^git pull --rebase origin main --autostash -X ours
+    ^git push origin main
 }
 
 def open_note [relative_path: string, initial_content: string = "", title: string = ""] {
