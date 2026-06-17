@@ -70,7 +70,9 @@ export def "note sync" [] {
     ^git branch --set-upstream-to=origin/main main
 
     ^git add -A
-    ^git commit -m $"($env.USER)@(sys host | get hostname)"
+    try { 
+        ^git commit -m $"($env.USER)@(sys host | get hostname)" 
+    }
     ^git pull --rebase origin main --autostash -X ours
     ^git push origin main
 }
