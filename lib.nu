@@ -71,7 +71,7 @@ export def "note sync" [] {
 
     ^git add -A
     try { 
-        ^git commit -m $"($env.USER)@(sys host | get hostname)" 
+        ^git commit -m $"(whoami)@(sys host | get hostname)" 
     }
     ^git pull --rebase origin main --autostash -X ours
     ^git push origin main
